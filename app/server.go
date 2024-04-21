@@ -179,6 +179,7 @@ func handleCommand(resp RESP) {
 	for i := 0; i < len(resp.Data); i++ {
 		if resp.Data[i] == '$' {
 			_, str := ReadNextRESP(resp.Data[i+2:])
+			fmt.Println(str.Data)
 			cmd = append(cmd, string(str.Data))
 		}
 
