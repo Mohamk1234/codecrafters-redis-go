@@ -193,7 +193,7 @@ func handleCommand(resp RESP) []byte {
 	case "ping":
 		response = []byte("+PONG\r\n")
 	case "echo":
-		response = []byte(cmd[1])
+		response = []byte("$" + strconv.Itoa(len(cmd[1])) + "\r\n" + cmd[1] + "\r\n")
 	default:
 		fmt.Println("error")
 	}
