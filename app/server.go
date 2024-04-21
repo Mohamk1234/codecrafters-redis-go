@@ -185,8 +185,8 @@ func handleCommand(resp RESP) {
 			continue
 		}
 		// Extract message after the leading '$' and remove trailing newline if present
-		message := strings.TrimSuffix(line[1:], "\n")
-		messages = append(messages, message)
+
+		messages = append(messages, line)
 	}
 
 	fmt.Println(messages)
