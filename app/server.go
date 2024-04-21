@@ -176,14 +176,8 @@ func parseMsg(msg []byte) error {
 
 func handleCommand(resp RESP) {
 	cmd := []string{}
-	for i := 0; i < len(resp.Data); i++ {
-		if resp.Data[i] == '$' {
-			_, str := ReadNextRESP(resp.Data[i+2:])
-			fmt.Println(str.Data)
-			cmd = append(cmd, string(str.Data))
-		}
+	fmt.Println(resp.Data)
 
-	}
 	fmt.Println(cmd)
 
 }
