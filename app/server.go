@@ -181,7 +181,7 @@ func handleCommand(resp RESP) {
 
 	var messages []string
 	for _, line := range lines {
-		if len(line) == 0 || line[0] != '$' { // Skip empty lines and lines not starting with '$'
+		if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines not starting with '$'
 			continue
 		}
 		// Extract message after the leading '$' and remove trailing newline if present
