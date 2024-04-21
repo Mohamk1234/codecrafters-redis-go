@@ -157,40 +157,47 @@ func ReadNextRESP(b []byte) (n int, resp RESP) {
 	return len(resp.Raw), resp
 }
 
-func parseMsg(msg []byte) error {
+func parseMsg(msg []byte) ([]byte, error) {
 	s, resp := ReadNextRESP(msg)
 	if s == 0 {
-		return errors.New("no resp object")
+		return nil, errors.New("no resp object")
 	}
 	t := resp.Type
-
+	var response []byte = nil
 	switch t {
 	case Integer:
 	case String:
 	case Bulk:
 	case Array:
-		handleCommand(resp)
+		response = handleCommand(resp)
 	case Error:
 	}
-	return nil
+	return response, nil
 }
 
-func handleCommand(resp RESP) {
+func handleCommand(resp RESP) []byte {
 	str := string(resp.Data)
 	lines := strings.Split(str, "\r\n")
 
-	var messages []string
+	var cmd []string
 	for _, line := range lines {
 		if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines not starting with '$'
 			continue
 		}
 		// Extract message after the leading '$' and remove trailing newline if present
 
-		messages = append(messages, line)
+		cmd = append(cmd, line)
 	}
-
-	fmt.Println(messages)
-
+	var response []byte = nil
+	switch strings.ToLower(cmd[0]) {
+	case "ping":
+		response = []byte("+PONG\r\n")
+	case "echo":
+		response = []byte(cmd[1])
+	default:
+		fmt.Println("error")
+	}
+	return response
 }
 
 func handleConnection(conn net.Conn) {
@@ -204,11 +211,15 @@ func handleConnection(conn net.Conn) {
 			os.Exit(1)
 		}
 
-		err = parseMsg(buff)
+		response, err := parseMsg(buff)
 
 		if err != nil {
 			fmt.Println("Error reading resp")
 			os.Exit(1)
+		}
+
+		if response != nil {
+			conn.Write(response)
 		}
 
 	}
