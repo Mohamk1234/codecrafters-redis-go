@@ -176,6 +176,7 @@ func parseMsg(msg []byte) error {
 
 func handleCommand(resp RESP) {
 	fmt.Println(string(resp.Data))
+	fmt.Println(resp.Count)
 }
 
 func handleConnection(conn net.Conn) {
