@@ -175,8 +175,16 @@ func parseMsg(msg []byte) error {
 }
 
 func handleCommand(resp RESP) {
-	fmt.Println(string(resp.Data))
-	fmt.Println(resp.Count)
+	cmd := []string{}
+	for i := 0; i < len(resp.Data); i++ {
+		if resp.Data[i] == '$' {
+			_, str := ReadNextRESP(resp.Data[i+2:])
+			cmd = append(cmd, string(str.Data))
+		}
+
+	}
+	fmt.Println(cmd)
+
 }
 
 func handleConnection(conn net.Conn) {
