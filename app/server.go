@@ -40,6 +40,10 @@ func handleConnection(conn net.Conn) {
 		}
 		str := "+PONG\r\n"
 		conn.Write([]byte(str))
+		if err != nil {
+			fmt.Println("Error writing to connection: ", err.Error())
+			return
+		}
 	}
 
 }
