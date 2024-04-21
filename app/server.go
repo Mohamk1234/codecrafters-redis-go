@@ -35,7 +35,7 @@ func handleConnection(conn net.Conn) {
 		_, err := conn.Read(buf)
 
 		if err != nil {
-			fmt.Println("Failed to read buffer")
+			fmt.Println("Failed to read buffer", err)
 			os.Exit(1)
 		}
 		str := "+PONG\r\n"
