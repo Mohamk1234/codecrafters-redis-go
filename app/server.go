@@ -162,7 +162,7 @@ func parseMsg(msg []byte) error {
 		return errors.New("no resp object")
 	}
 	t := resp.Type
-	fmt.Println(t, resp)
+
 	switch t {
 	case Integer:
 	case String:
@@ -175,7 +175,7 @@ func parseMsg(msg []byte) error {
 }
 
 func handleCommand(resp RESP) {
-
+	fmt.Println("commands")
 }
 
 func handleConnection(conn net.Conn) {
