@@ -162,7 +162,7 @@ func parseMsg(msg []byte) error {
 		return errors.New("no resp object")
 	}
 	t := resp.Type
-	fmt.Println(resp)
+	fmt.Println(t, resp)
 	switch t {
 	case Integer:
 	case String:
