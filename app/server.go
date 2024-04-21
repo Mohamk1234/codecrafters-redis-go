@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Type byte
@@ -175,10 +176,20 @@ func parseMsg(msg []byte) error {
 }
 
 func handleCommand(resp RESP) {
-	cmd := []string{}
-	fmt.Println(string(resp.Data))
+	str := string(resp.Data)
+	lines := strings.Split(str, "\r\n")
 
-	fmt.Println(cmd)
+	var messages []string
+	for _, line := range lines {
+		if len(line) == 0 || line[0] != '$' { // Skip empty lines and lines not starting with '$'
+			continue
+		}
+		// Extract message after the leading '$' and remove trailing newline if present
+		message := strings.TrimSuffix(line[1:], "\n")
+		messages = append(messages, message)
+	}
+
+	fmt.Println(messages)
 
 }
 
