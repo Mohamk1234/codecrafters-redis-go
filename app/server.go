@@ -231,6 +231,7 @@ func getFromStore(cmd []RESP) []byte {
 	key := string(cmd[1].Data)
 	fmt.Println(key)
 	value, err := keyvaluestore[key]
+	fmt.Println(value)
 	if err {
 		return []byte("$-1\r\n")
 	}
@@ -239,6 +240,7 @@ func getFromStore(cmd []RESP) []byte {
 	if !ok {
 		return []byte("$-1\r\n")
 	}
+	fmt.Println(v)
 	return craftBulk(v)
 }
 
