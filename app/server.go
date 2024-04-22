@@ -26,7 +26,7 @@ type RESP struct {
 	Count int
 }
 
-var m = make(map[string]any)
+var keyvaluestore = make(map[string]any)
 
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -210,9 +210,22 @@ func craftSimp(r string) []byte {
 	return []byte("+" + r + "\r\n")
 }
 
-// func addToStore([]byte) []byte {
+func addToStore(cmd []RESP) []byte {
+	key := string(cmd[1].Data)
+	var value any
 
-// }
+	switch cmd[2].Type {
+	case Bulk:
+		value = string(cmd[2].Data)
+	case Integer:
+		value, _ = strconv.Atoi(string(cmd[2].Data))
+	default:
+		return []byte("$-1\r\n")
+	}
+
+	keyvaluestore[key] = value
+	return craftSimp("OK")
+}
 
 // func getFromStore([]byte) []byte {
 
@@ -232,19 +245,6 @@ func handleCommand(resp RESP) []byte {
 		return true                       // Continue iterating
 	})
 
-	fmt.Println("All RESP objects:")
-	for _, obj := range cmd {
-		fmt.Println(string(obj.Data))
-	}
-	// str := string(resp.Data)
-	// lines := strings.Split(str, "\r\n")
-	// var cmd []string
-	// for _, line := range lines {
-	// 	if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines starting with '$'
-	// 		continue
-	// 	}
-	// 	cmd = append(cmd, line)
-	// }
 	var response []byte = nil
 	switch strings.ToLower(string(cmd[0].Data)) {
 	case "ping":
@@ -252,7 +252,7 @@ func handleCommand(resp RESP) []byte {
 	case "echo":
 		response = echo(cmd)
 	case "set":
-		//response = addToStore(resp.Data)
+		response = addToStore(cmd)
 	case "get":
 		//response = getFromStore(resp.Data)
 
