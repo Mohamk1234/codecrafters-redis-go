@@ -228,9 +228,9 @@ func addToStore(cmd []RESP) []byte {
 }
 
 func getFromStore(cmd []RESP) []byte {
-	value, err := keyvaluestore[string(cmd[1].Data)]
+	value, ok := keyvaluestore[string(cmd[1].Data)]
 	fmt.Println(value)
-	if err {
+	if !ok {
 		return []byte("$-1\r\n")
 	}
 	v, ok := value.(string)
