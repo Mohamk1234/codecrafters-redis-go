@@ -26,6 +26,8 @@ type RESP struct {
 	Count int
 }
 
+var m = make(map[string]any)
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
@@ -64,6 +66,31 @@ func (r RESP) Int() int64 {
 func (r RESP) Float() float64 {
 	x, _ := strconv.ParseFloat(r.String(), 10)
 	return x
+}
+
+// ForEach iterates over each Array element
+// func (r RESP) ForEach(iter func(resp RESP) bool) {
+// 	data := r.Data
+// 	for i := 0; i < r.Count; i++ {
+// 		n, resp := ReadNextRESP(data)
+// 		if !iter(resp) {
+// 			return
+// 		}
+// 		data = data[n:]
+// 	}
+// }
+
+func (r RESP) ForEach(iter func(resp RESP, results *[]RESP) bool) []RESP {
+	data := r.Data
+	var respObjects []RESP // Declare an empty slice to store RESP objects
+	for i := 0; i < r.Count; i++ {
+		n, resp := ReadNextRESP(data)
+		if !iter(resp, &respObjects) { // Pass the slice address using &
+			return respObjects
+		}
+		data = data[n:]
+	}
+	return respObjects
 }
 
 func ReadNextRESP(b []byte) (n int, resp RESP) {
@@ -175,17 +202,48 @@ func parseMsg(msg []byte) ([]byte, error) {
 	return response, nil
 }
 
+func craftBulk(r string) []byte {
+	return []byte("$" + strconv.Itoa(len(r)) + "\r\n" + r + "\r\n")
+}
+
+func craftSimp(r string) []byte {
+	return []byte("+" + r + "\r\n")
+}
+
+// func addToStore([]byte) []byte {
+
+// }
+
+// func getFromStore([]byte) []byte {
+
+// }
+
+// func echo([]byte) []byte {
+
+// }
+
 func handleCommand(resp RESP) []byte {
+
+	var cmd_alt []RESP
+
+	cmd_alt = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+		// Process RESP object if needed
+		*results = append(*results, resp) // Append RESP object to the slice
+		return true                       // Continue iterating
+	})
+
+	fmt.Println("All RESP objects:")
+	for _, obj := range cmd_alt {
+		fmt.Println(string(obj.Data))
+	}
+
 	str := string(resp.Data)
 	lines := strings.Split(str, "\r\n")
-
 	var cmd []string
 	for _, line := range lines {
-		if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines not starting with '$'
+		if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines starting with '$'
 			continue
 		}
-		// Extract message after the leading '$' and remove trailing newline if present
-
 		cmd = append(cmd, line)
 	}
 	var response []byte = nil
@@ -193,7 +251,12 @@ func handleCommand(resp RESP) []byte {
 	case "ping":
 		response = []byte("+PONG\r\n")
 	case "echo":
-		response = []byte("$" + strconv.Itoa(len(cmd[1])) + "\r\n" + cmd[1] + "\r\n")
+		response = craftBulk(cmd[1])
+	case "set":
+		//response = addToStore(resp.Data)
+	case "get":
+		//response = getFromStore(resp.Data)
+
 	default:
 		fmt.Println("error")
 	}
