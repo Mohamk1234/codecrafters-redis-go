@@ -227,9 +227,20 @@ func addToStore(cmd []RESP) []byte {
 	return craftSimp("OK")
 }
 
-// func getFromStore([]byte) []byte {
+func getFromStore(cmd []RESP) []byte {
+	key := string(cmd[1].Data)
 
-// }
+	value, err := keyvaluestore[key]
+	if err {
+		return []byte("$-1\r\n")
+	}
+	v, ok := value.(string)
+
+	if !ok {
+		return []byte("$-1\r\n")
+	}
+	return craftBulk(v)
+}
 
 func echo(cmd []RESP) []byte {
 	return craftBulk(string(cmd[1].Data))
@@ -254,7 +265,7 @@ func handleCommand(resp RESP) []byte {
 	case "set":
 		response = addToStore(cmd)
 	case "get":
-		//response = getFromStore(resp.Data)
+		response = getFromStore(cmd)
 
 	default:
 		fmt.Println("error")
