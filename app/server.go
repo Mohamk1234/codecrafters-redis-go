@@ -218,40 +218,39 @@ func craftSimp(r string) []byte {
 
 // }
 
-// func echo([]byte) []byte {
-
-// }
+func echo(cmd []RESP) []byte {
+	return craftBulk(string(cmd[1].Data))
+}
 
 func handleCommand(resp RESP) []byte {
 
-	var cmd_alt []RESP
+	var cmd []RESP
 
-	cmd_alt = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+	cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
 		*results = append(*results, resp) // Append RESP object to the slice
 		return true                       // Continue iterating
 	})
 
 	fmt.Println("All RESP objects:")
-	for _, obj := range cmd_alt {
+	for _, obj := range cmd {
 		fmt.Println(string(obj.Data))
 	}
-
-	str := string(resp.Data)
-	lines := strings.Split(str, "\r\n")
-	var cmd []string
-	for _, line := range lines {
-		if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines starting with '$'
-			continue
-		}
-		cmd = append(cmd, line)
-	}
+	// str := string(resp.Data)
+	// lines := strings.Split(str, "\r\n")
+	// var cmd []string
+	// for _, line := range lines {
+	// 	if len(line) == 0 || line[0] == '$' { // Skip empty lines and lines starting with '$'
+	// 		continue
+	// 	}
+	// 	cmd = append(cmd, line)
+	// }
 	var response []byte = nil
-	switch strings.ToLower(cmd[0]) {
+	switch strings.ToLower(string(cmd[0].Data)) {
 	case "ping":
 		response = []byte("+PONG\r\n")
 	case "echo":
-		response = craftBulk(cmd[1])
+		response = echo(cmd)
 	case "set":
 		//response = addToStore(resp.Data)
 	case "get":
