@@ -229,7 +229,6 @@ func addToStore(cmd []RESP) []byte {
 
 func getFromStore(cmd []RESP) []byte {
 	value, ok := keyvaluestore[string(cmd[1].Data)]
-	fmt.Println(value)
 	if !ok {
 		return []byte("$-1\r\n")
 	}
