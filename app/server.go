@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Type byte
@@ -26,10 +27,15 @@ type RESP struct {
 	Count int
 }
 
+type TimedObject struct {
+	value    any
+	expiry   time.Time
+	duration int
+}
+
 var keyvaluestore = make(map[string]any)
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
@@ -67,18 +73,6 @@ func (r RESP) Float() float64 {
 	x, _ := strconv.ParseFloat(r.String(), 10)
 	return x
 }
-
-// ForEach iterates over each Array element
-// func (r RESP) ForEach(iter func(resp RESP) bool) {
-// 	data := r.Data
-// 	for i := 0; i < r.Count; i++ {
-// 		n, resp := ReadNextRESP(data)
-// 		if !iter(resp) {
-// 			return
-// 		}
-// 		data = data[n:]
-// 	}
-// }
 
 func (r RESP) ForEach(iter func(resp RESP, results *[]RESP) bool) []RESP {
 	data := r.Data
@@ -213,7 +207,8 @@ func craftSimp(r string) []byte {
 func addToStore(cmd []RESP) []byte {
 	key := string(cmd[1].Data)
 	var value any
-
+	duration := 0
+	expiry := time.Now()
 	switch cmd[2].Type {
 	case Bulk:
 		value = string(cmd[2].Data)
@@ -223,21 +218,39 @@ func addToStore(cmd []RESP) []byte {
 		return []byte("$-1\r\n")
 	}
 
-	keyvaluestore[key] = value
+	if len(cmd) > 3 {
+		if strings.ToLower(string(cmd[3].Data)) == "px" {
+			Mil, err := strconv.Atoi(strings.ToLower(string(cmd[4].Data)))
+			if err != nil {
+				return []byte("$-1\r\n")
+			}
+			duration = Mil
+			expiry = time.Now().Add(time.Millisecond * time.Duration(Mil))
+		}
+
+	}
+	obj := TimedObject{
+		value:    value,
+		duration: duration,
+		expiry:   expiry,
+	}
+
+	keyvaluestore[key] = obj
 	return craftSimp("OK")
 }
 
 func getFromStore(cmd []RESP) []byte {
-	value, ok := keyvaluestore[string(cmd[1].Data)]
+	obj, ok := keyvaluestore[string(cmd[1].Data)]
 	if !ok {
 		return []byte("$-1\r\n")
 	}
-	v, ok := value.(string)
+	o, _ := obj.(TimedObject)
+	v, ok := o.value.(string)
 
-	if !ok {
+	if !ok || (o.duration != 0 && time.Now().After(o.expiry)) {
+		delete(keyvaluestore, string(cmd[1].Data))
 		return []byte("$-1\r\n")
 	}
-	fmt.Println(v)
 	return craftBulk(v)
 }
 
