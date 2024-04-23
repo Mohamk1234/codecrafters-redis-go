@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -35,10 +36,14 @@ type TimedObject struct {
 
 var keyvaluestore = make(map[string]any)
 
-func main() {
-	fmt.Println("Logs from your program will appear here!")
+// const defaultListenAddr = "0.0.0.0:6379"
 
-	l, err := net.Listen("tcp", "0.0.0.0:6379")
+func main() {
+	var ListenAddr string
+	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
+	flag.Parse()
+
+	l, err := net.Listen("tcp", "0.0.0.0:"+ListenAddr)
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379")
 		os.Exit(1)
