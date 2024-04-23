@@ -260,9 +260,7 @@ func echo(cmd []RESP) []byte {
 
 func handleCommand(resp RESP) []byte {
 
-	var cmd []RESP
-
-	cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+	var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
 		*results = append(*results, resp) // Append RESP object to the slice
 		return true                       // Continue iterating
