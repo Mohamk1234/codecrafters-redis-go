@@ -328,14 +328,14 @@ func handleConnection(conn net.Conn) {
 
 		if err != nil {
 			fmt.Println("Failed to read buffer", err)
-			os.Exit(1)
+			//os.Exit(1)
 		}
 
 		response, err := parseMsg(buff)
 
 		if err != nil {
 			fmt.Println("Error reading resp")
-			os.Exit(1)
+			//os.Exit(1)
 		}
 
 		if response != nil {
