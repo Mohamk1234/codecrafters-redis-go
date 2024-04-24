@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
+	"log/slog"
 	"net"
 	"os"
 	"strconv"
@@ -36,20 +38,28 @@ type TimedObject struct {
 
 var keyvaluestore = make(map[string]any)
 
-// const defaultListenAddr = "0.0.0.0:6379"
+type Server struct {
+	ListenAddr string
+	role       string
+	ln         net.Listener
+}
 
-func main() {
-	var ListenAddr string
-	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
-	flag.Parse()
-
-	l, err := net.Listen("tcp", "0.0.0.0:"+ListenAddr)
-	if err != nil {
-		fmt.Println("Failed to bind to port 6379")
-		os.Exit(1)
+func NewServer(ListenAddr string, role string) *Server {
+	return &Server{
+		ListenAddr: ListenAddr,
+		role:       role,
 	}
+}
+
+func (s *Server) Start() error {
+	ln, err := net.Listen("tcp", "0.0.0.0:"+s.ListenAddr)
+	if err != nil {
+		return err
+	}
+	s.ln = ln
+	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
 	for {
-		conn, err := l.Accept()
+		conn, err := ln.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
@@ -59,6 +69,16 @@ func main() {
 
 	}
 
+}
+
+func main() {
+
+	var ListenAddr string
+	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
+	flag.Parse()
+
+	server := NewServer(ListenAddr, "master")
+	log.Fatal(server.Start())
 }
 
 func (r RESP) Bytes() []byte {
