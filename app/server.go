@@ -230,15 +230,15 @@ func craftSimp(r string) []byte {
 }
 
 func addToStore(cmd []RESP) []byte {
-	key := string(cmd[1].Data)
+	key := cmd[1].String()
 	var value any
 	duration := 0
 	expiry := time.Now()
 	switch cmd[2].Type {
 	case Bulk:
-		value = string(cmd[2].Data)
+		value = cmd[2].String()
 	case Integer:
-		value, _ = strconv.Atoi(string(cmd[2].Data))
+		value = cmd[2].Int()
 	default:
 		return []byte("$-1\r\n")
 	}
@@ -265,7 +265,7 @@ func addToStore(cmd []RESP) []byte {
 }
 
 func getFromStore(cmd []RESP) []byte {
-	obj, ok := keyvaluestore[string(cmd[1].Data)]
+	obj, ok := keyvaluestore[cmd[1].String()]
 	if !ok {
 		return []byte("$-1\r\n")
 	}
@@ -273,14 +273,24 @@ func getFromStore(cmd []RESP) []byte {
 	v, ok := o.value.(string)
 
 	if !ok || (o.duration != 0 && time.Now().After(o.expiry)) {
-		delete(keyvaluestore, string(cmd[1].Data))
+		delete(keyvaluestore, cmd[1].String())
 		return []byte("$-1\r\n")
 	}
 	return craftBulk(v)
 }
 
 func echo(cmd []RESP) []byte {
-	return craftBulk(string(cmd[1].Data))
+	return craftBulk(cmd[1].String())
+}
+
+func sendInfo(cmd []RESP) []byte {
+	t := strings.ToLower(cmd[1].String())
+
+	switch t {
+	case "replication":
+		return craftBulk("role:master")
+	}
+	return []byte("$-1\r\n")
 }
 
 func handleCommand(resp RESP) []byte {
@@ -301,6 +311,8 @@ func handleCommand(resp RESP) []byte {
 		response = addToStore(cmd)
 	case "get":
 		response = getFromStore(cmd)
+	case "info":
+		response = sendInfo(cmd)
 
 	default:
 		fmt.Println("error")
