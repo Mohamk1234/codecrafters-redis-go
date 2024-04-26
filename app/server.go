@@ -8,9 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 )
 
 var keyvaluestore = make(map[string]any)
@@ -19,12 +17,16 @@ type Server struct {
 	ListenAddr string
 	role       string
 	ln         net.Listener
+	masterurl  string
 }
 
-func NewServer(ListenAddr string, role string) *Server {
+var role = "master"
+
+func NewServer(ListenAddr string, role string, masterurl string) *Server {
 	return &Server{
 		ListenAddr: ListenAddr,
 		role:       role,
+		masterurl:  masterurl,
 	}
 }
 
@@ -51,10 +53,17 @@ func (s *Server) Start() error {
 func main() {
 
 	var ListenAddr string
+	var masterurl string
+
 	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
+	flag.StringVar(&masterurl, "replicaof", "", "url of master")
 	flag.Parse()
 
-	server := NewServer(ListenAddr, "master")
+	if masterurl != "" {
+		role = "slave"
+	}
+
+	server := NewServer(ListenAddr, role, masterurl)
 	log.Fatal(server.Start())
 }
 
@@ -66,86 +75,11 @@ func parseMsg(msg []byte) ([]byte, error) {
 	t := resp.Type
 	var response []byte = nil
 	switch t {
-	case Integer:
-	case String:
-	case Bulk:
 	case Array:
 		response = handleCommand(resp)
-	case Error:
+
 	}
 	return response, nil
-}
-
-func craftBulk(r string) []byte {
-	return []byte("$" + strconv.Itoa(len(r)) + "\r\n" + r + "\r\n")
-}
-
-func craftSimp(r string) []byte {
-	return []byte("+" + r + "\r\n")
-}
-
-func addToStore(cmd []RESP) []byte {
-	key := cmd[1].String()
-	var value any
-	duration := 0
-	expiry := time.Now()
-	switch cmd[2].Type {
-	case Bulk:
-		value = cmd[2].String()
-	case Integer:
-		value = cmd[2].Int()
-	default:
-		return []byte("$-1\r\n")
-	}
-
-	if len(cmd) > 3 {
-		if strings.ToLower(string(cmd[3].Data)) == "px" {
-			Mil, err := strconv.Atoi(strings.ToLower(string(cmd[4].Data)))
-			if err != nil {
-				return []byte("$-1\r\n")
-			}
-			duration = Mil
-			expiry = time.Now().Add(time.Millisecond * time.Duration(Mil))
-		}
-
-	}
-	obj := TimedObject{
-		value:    value,
-		duration: duration,
-		expiry:   expiry,
-	}
-
-	keyvaluestore[key] = obj
-	return craftSimp("OK")
-}
-
-func getFromStore(cmd []RESP) []byte {
-	obj, ok := keyvaluestore[cmd[1].String()]
-	if !ok {
-		return []byte("$-1\r\n")
-	}
-	o, _ := obj.(TimedObject)
-	v, ok := o.value.(string)
-
-	if !ok || (o.duration != 0 && time.Now().After(o.expiry)) {
-		delete(keyvaluestore, cmd[1].String())
-		return []byte("$-1\r\n")
-	}
-	return craftBulk(v)
-}
-
-func echo(cmd []RESP) []byte {
-	return craftBulk(cmd[1].String())
-}
-
-func sendInfo(cmd []RESP) []byte {
-	t := strings.ToLower(cmd[1].String())
-
-	switch t {
-	case "replication":
-		return craftBulk("role:master")
-	}
-	return []byte("$-1\r\n")
 }
 
 func handleCommand(resp RESP) []byte {
@@ -182,8 +116,7 @@ func handleConnection(conn net.Conn) {
 		_, err := conn.Read(buff)
 
 		if err != nil {
-			fmt.Println("Failed to read buffer", err)
-
+			//fmt.Println("Failed to read buffer", err)
 		}
 
 		response, _ := parseMsg(buff)

@@ -149,3 +149,11 @@ func ReadNextRESP(b []byte) (n int, resp RESP) {
 	resp.Raw = b[0 : i+tn]
 	return len(resp.Raw), resp
 }
+
+func craftBulk(r string) []byte {
+	return []byte("$" + strconv.Itoa(len(r)) + "\r\n" + r + "\r\n")
+}
+
+func craftSimp(r string) []byte {
+	return []byte("+" + r + "\r\n")
+}
