@@ -64,6 +64,7 @@ func main() {
 	}
 
 	server := NewServer(ListenAddr, role, masterurl)
+	fmt.Println(masterurl)
 	log.Fatal(server.Start())
 }
 
