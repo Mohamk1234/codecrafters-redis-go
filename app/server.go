@@ -57,7 +57,8 @@ func main() {
 
 	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
 	flag.StringVar(&masterurl, "replicaof", "", "url of master node")
-	fmt.Println(flag.Args())
+	argsWithoutProg := os.Args[1:]
+	fmt.Println(argsWithoutProg)
 	flag.Parse()
 
 	if masterurl != "" {
@@ -65,7 +66,6 @@ func main() {
 	}
 
 	server := NewServer(ListenAddr, role, masterurl)
-	fmt.Println(masterurl)
 	log.Fatal(server.Start())
 }
 
