@@ -56,7 +56,8 @@ func main() {
 	var masterurl string
 
 	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
-	flag.StringVar(&masterurl, "replicaof", "", "url of master")
+	flag.StringVar(&masterurl, "replicaof", "", "url of master node")
+	fmt.Println(flag.Args())
 	flag.Parse()
 
 	if masterurl != "" {
