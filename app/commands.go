@@ -30,7 +30,7 @@ func sendInfo(cmd []RESP) []byte {
 
 	switch t {
 	case "replication":
-		return craftBulk("role:" + role)
+		return craftBulk("role:" + config["role"] + "master_replid:" + config["master_replid"] + "master_repl_offset:" + config["master_repl_offset"])
 	}
 	return []byte("$-1\r\n")
 }

@@ -15,18 +15,18 @@ var keyvaluestore = make(map[string]any)
 
 type Server struct {
 	ListenAddr string
-	role       string
-	ln         net.Listener
-	masterurl  string
+	// role       string
+	ln net.Listener
+	// masterurl  string
+	// master_replid string
+	// master_repl_offset int
 }
 
-var role = "master"
+var config = make(map[string]string)
 
-func NewServer(ListenAddr string, role string, masterurl string) *Server {
+func NewServer(ListenAddr string) *Server {
 	return &Server{
 		ListenAddr: ListenAddr,
-		role:       role,
-		masterurl:  masterurl,
 	}
 }
 
@@ -50,6 +50,15 @@ func (s *Server) Start() error {
 
 }
 
+func findAfter(data []string, target string) string {
+	for i := 0; i < len(data)-1; i++ {
+		if data[i] == target {
+			return data[i+1]
+		}
+	}
+	return ""
+}
+
 func main() {
 
 	var ListenAddr string
@@ -57,15 +66,19 @@ func main() {
 
 	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
 	flag.StringVar(&masterurl, "replicaof", "", "url of master node")
-	argsWithoutProg := os.Args[1:]
-	fmt.Println(argsWithoutProg)
 	flag.Parse()
 
+	config["role"] = "master"
 	if masterurl != "" {
-		role = "slave"
+		config["role"] = "slave"
+		config["masterurl"] = masterurl + ":" + findAfter(os.Args[1:], masterurl)
 	}
 
-	server := NewServer(ListenAddr, role, masterurl)
+	config["master_replid"] = generateRandomString(40)
+	config["master_repl_offset"] = "0"
+
+	server := NewServer(ListenAddr)
+	fmt.Printf(masterurl)
 	log.Fatal(server.Start())
 }
 
