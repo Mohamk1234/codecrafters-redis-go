@@ -84,6 +84,13 @@ func (s *Server) ConnectMaster() error {
 			}
 			_, response = ReadNextRESP(buff)
 			if response.String() == "OK" {
+				conn.Write(craftArray([]string{"psync", "?", "-1"}))
+				_, err = conn.Read(buff)
+
+				if err != nil {
+					return err
+				}
+				_, response = ReadNextRESP(buff)
 				return nil
 			} else {
 				return errors.New("Error connecting to Master")
@@ -94,8 +101,6 @@ func (s *Server) ConnectMaster() error {
 	} else {
 		return errors.New("Error connecting to Master")
 	}
-
-	return nil
 }
 
 func findAfter(data []string, target string) string {
