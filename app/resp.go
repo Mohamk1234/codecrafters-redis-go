@@ -157,3 +157,13 @@ func craftBulk(r string) []byte {
 func craftSimp(r string) []byte {
 	return []byte("+" + r + "\r\n")
 }
+
+func craftArray(r []string) []byte {
+	response := "*" + string(len(r)) + "\r\n"
+
+	for _, v := range r {
+		response += string(craftBulk(v))
+	}
+
+	return []byte(response)
+}

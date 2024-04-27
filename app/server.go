@@ -50,6 +50,18 @@ func (s *Server) Start() error {
 
 }
 
+func (s *Server) ConnectMaster(error) {
+	conn, err := net.Dial("tcp", config["masterurl"])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	response := craftArray([]string{"ping"})
+	conn.Write()
+	defer conn.Close()
+
+}
+
 func findAfter(data []string, target string) string {
 	for i := 0; i < len(data)-1; i++ {
 		if data[i] == target {
@@ -78,7 +90,6 @@ func main() {
 	config["master_repl_offset"] = "0"
 
 	server := NewServer(ListenAddr)
-	fmt.Printf(masterurl)
 	log.Fatal(server.Start())
 }
 
