@@ -159,7 +159,7 @@ func craftSimp(r string) []byte {
 }
 
 func craftArray(r []string) []byte {
-	response := "*" + string(len(r)) + "\r\n"
+	response := "*" + strconv.Itoa(len(r)) + "\r\n"
 
 	for _, v := range r {
 		response += string(craftBulk(v))
