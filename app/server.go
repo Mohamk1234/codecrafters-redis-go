@@ -35,9 +35,9 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-	s.ConnectMaster()
 	s.ln = ln
 	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
+	s.ConnectMaster()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -57,9 +57,44 @@ func (s *Server) ConnectMaster() error {
 		fmt.Println("Error:", err)
 		return err
 	}
-
-	conn.Write(craftArray([]string{"ping"}))
 	defer conn.Close()
+	conn.Write(craftArray([]string{"ping"}))
+	buff := make([]byte, 1024)
+	_, err = conn.Read(buff)
+
+	if err != nil {
+		return err
+	}
+	_, response := ReadNextRESP(buff)
+	if response.String() == "PONG" {
+		conn.Write(craftArray([]string{"replconf", "listening-port", s.ListenAddr}))
+		_, err = conn.Read(buff)
+
+		if err != nil {
+			return err
+		}
+		_, response = ReadNextRESP(buff)
+
+		if response.String() == "OK" {
+			conn.Write(craftArray([]string{"replconf", "capa", "psync2"}))
+			_, err = conn.Read(buff)
+
+			if err != nil {
+				return err
+			}
+			_, response = ReadNextRESP(buff)
+			if response.String() == "OK" {
+				return nil
+			} else {
+				return errors.New("Error connecting to Master")
+			}
+		} else {
+			return errors.New("Error connecting to Master")
+		}
+	} else {
+		return errors.New("Error connecting to Master")
+	}
+
 	return nil
 }
 
@@ -129,7 +164,8 @@ func handleCommand(resp RESP) []byte {
 		response = getFromStore(cmd)
 	case "info":
 		response = sendInfo(cmd)
-
+	case "replconf":
+		response = replconf(cmd)
 	default:
 		fmt.Println("error")
 	}

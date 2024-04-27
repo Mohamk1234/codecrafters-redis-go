@@ -69,3 +69,17 @@ func addToStore(cmd []RESP) []byte {
 	keyvaluestore[key] = obj
 	return craftSimp("OK")
 }
+
+func replconf(cmd []RESP) []byte {
+	command := cmd[1].String()
+
+	if command == "listening-port" {
+		config["peer_port"] = cmd[2].String()
+		return craftSimp("OK")
+	} else if command == "capa" {
+		return craftSimp("OK")
+	} else {
+		return []byte("$-1\r\n")
+	}
+
+}
