@@ -35,6 +35,7 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
+	s.ConnectMaster()
 	s.ln = ln
 	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
 	for {
@@ -60,7 +61,6 @@ func (s *Server) ConnectMaster() error {
 	conn.Write(craftArray([]string{"ping"}))
 	defer conn.Close()
 	return nil
-
 }
 
 func findAfter(data []string, target string) string {
