@@ -50,17 +50,18 @@ func (s *Server) Start() error {
 
 }
 
-// func (s *Server) ConnectMaster(error) {
-// 	conn, err := net.Dial("tcp", config["masterurl"])
-// 	if err != nil {
-// 		fmt.Println("Error:", err)
-// 		return
-// 	}
+func (s *Server) ConnectMaster() error {
+	conn, err := net.Dial("tcp", config["masterurl"])
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
 
-// 	conn.Write(craftArray([]string{"ping"}))
-// 	defer conn.Close()
+	conn.Write(craftArray([]string{"ping"}))
+	defer conn.Close()
+	return nil
 
-// }
+}
 
 func findAfter(data []string, target string) string {
 	for i := 0; i < len(data)-1; i++ {
