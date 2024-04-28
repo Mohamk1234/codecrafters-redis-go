@@ -171,6 +171,8 @@ func handleCommand(resp RESP) []byte {
 		response = sendInfo(cmd)
 	case "replconf":
 		response = replconf(cmd)
+	case "psync":
+		response = psync((cmd))
 	default:
 		fmt.Println("error")
 	}
