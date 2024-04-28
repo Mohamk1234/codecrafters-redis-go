@@ -85,5 +85,5 @@ func replconf(cmd []RESP) []byte {
 }
 
 func psync(cmd []RESP) []byte {
-	return craftSimp("fullresync " + config["master_replid"] + " " + config["master_repl_offset"])
+	return craftSimp("FULLRESYNC " + config["master_replid"] + " " + config["master_repl_offset"])
 }
