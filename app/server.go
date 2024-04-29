@@ -14,19 +14,22 @@ import (
 var keyvaluestore = make(map[string]any)
 
 type Server struct {
-	ListenAddr string
-	// role       string
-	ln net.Listener
-	// masterurl  string
-	// master_replid string
-	// master_repl_offset int
+	ListenAddr         string
+	role               string
+	ln                 net.Listener
+	masterurl          string
+	master_replid      string
+	master_repl_offset string
+	slave_urls         []string
 }
 
-var config = make(map[string]string)
-
-func NewServer(ListenAddr string) *Server {
+func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
 	return &Server{
-		ListenAddr: ListenAddr,
+		ListenAddr:         ListenAddr,
+		role:               role,
+		masterurl:          masterurl,
+		master_replid:      master_replid,
+		master_repl_offset: master_repl_offset,
 	}
 }
 
@@ -45,14 +48,14 @@ func (s *Server) Start() error {
 			os.Exit(1)
 		}
 
-		go handleConnection(conn)
+		go s.handleConnection(conn)
 
 	}
 
 }
 
 func (s *Server) ConnectMaster() error {
-	conn, err := net.Dial("tcp", config["masterurl"])
+	conn, err := net.Dial("tcp", s.masterurl)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return err
@@ -121,35 +124,32 @@ func main() {
 	flag.StringVar(&masterurl, "replicaof", "", "url of master node")
 	flag.Parse()
 
-	config["role"] = "master"
+	role := "master"
 	if masterurl != "" {
-		config["role"] = "slave"
-		config["masterurl"] = masterurl + ":" + findAfter(os.Args[1:], masterurl)
+		role = "slave"
+		masterurl = masterurl + ":" + findAfter(os.Args[1:], masterurl)
 	}
 
-	config["master_replid"] = generateRandomString(40)
-	config["master_repl_offset"] = "0"
-
-	server := NewServer(ListenAddr)
+	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0")
 	log.Fatal(server.Start())
 }
 
-func parseMsg(msg []byte) ([]byte, error) {
-	s, resp := ReadNextRESP(msg)
-	if s == 0 {
+func (s *Server) parseMsg(msg []byte) ([]byte, error) {
+	si, resp := ReadNextRESP(msg)
+	if si == 0 {
 		return nil, errors.New("no resp object")
 	}
 	t := resp.Type
 	var response []byte = nil
 	switch t {
 	case Array:
-		response = handleCommand(resp)
+		response = s.handleCommand(resp)
 
 	}
 	return response, nil
 }
 
-func handleCommand(resp RESP) []byte {
+func (s *Server) handleCommand(resp RESP) []byte {
 
 	var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
@@ -168,18 +168,18 @@ func handleCommand(resp RESP) []byte {
 	case "get":
 		response = getFromStore(cmd)
 	case "info":
-		response = sendInfo(cmd)
+		response = s.sendInfo(cmd)
 	case "replconf":
-		response = replconf(cmd)
+		response = s.replconf(cmd)
 	case "psync":
-		response = psync((cmd))
+		response = s.psync((cmd))
 	default:
 		fmt.Println("error")
 	}
 	return response
 }
 
-func handleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 	for {
 		buff := make([]byte, 1024)
@@ -189,7 +189,7 @@ func handleConnection(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 
-		response, _ := parseMsg(buff)
+		response, _ := s.parseMsg(buff)
 
 		if response != nil {
 			conn.Write(response)

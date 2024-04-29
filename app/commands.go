@@ -25,12 +25,12 @@ func echo(cmd []RESP) []byte {
 	return craftBulk(cmd[1].String())
 }
 
-func sendInfo(cmd []RESP) []byte {
+func (s *Server) sendInfo(cmd []RESP) []byte {
 	t := strings.ToLower(cmd[1].String())
 
 	switch t {
 	case "replication":
-		return craftBulk("role:" + config["role"] + "master_replid:" + config["master_replid"] + "master_repl_offset:" + config["master_repl_offset"])
+		return craftBulk("role:" + s.role + "master_replid:" + s.master_replid + "master_repl_offset:" + s.master_repl_offset)
 	}
 	return []byte("$-1\r\n")
 }
@@ -70,11 +70,11 @@ func addToStore(cmd []RESP) []byte {
 	return craftSimp("OK")
 }
 
-func replconf(cmd []RESP) []byte {
+func (s *Server) replconf(cmd []RESP) []byte {
 	command := cmd[1].String()
 
 	if command == "listening-port" {
-		config["peer_port"] = cmd[2].String()
+		s.slave_urls = append(s.slave_urls, cmd[2].String())
 		return craftSimp("OK")
 	} else if command == "capa" {
 		return craftSimp("OK")
@@ -84,6 +84,11 @@ func replconf(cmd []RESP) []byte {
 
 }
 
-func psync(cmd []RESP) []byte {
-	return craftSimp("FULLRESYNC " + config["master_replid"] + " " + config["master_repl_offset"])
+func (s *Server) psync(cmd []RESP) []byte {
+	defer s.rdbTransfer()
+	return craftSimp("FULLRESYNC " + s.master_replid + " " + s.master_repl_offset)
+}
+
+func (s *Server) rdbTransfer() {
+
 }
