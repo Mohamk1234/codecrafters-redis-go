@@ -136,6 +136,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		case "set":
 			_ = addToStore(cmd)
 		case "replconf":
+			fmt.Println("in replconf")
 			conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", "0"}))))
 		}
 	}
