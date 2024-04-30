@@ -135,7 +135,8 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		switch strings.ToLower(string(cmd[0].Data)) {
 		case "set":
 			_ = addToStore(cmd)
-		case "del":
+		case "replconf":
+			craftArray([]string{"REPLCONF", "ACK", "0"})
 		}
 	}
 }
