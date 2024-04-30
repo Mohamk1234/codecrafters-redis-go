@@ -173,7 +173,6 @@ func (s *Server) handleCommand(resp RESP, conn net.Conn) []byte {
 		response = s.replconf(cmd)
 	case "psync":
 		response = s.psync(cmd)
-		defer s.rdbTransfer(conn)
 
 	default:
 		fmt.Println("error")

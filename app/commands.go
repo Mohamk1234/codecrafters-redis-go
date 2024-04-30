@@ -86,7 +86,8 @@ func (s *Server) replconf(cmd []RESP) []byte {
 
 }
 
-func (s *Server) psync(cmd []RESP) []byte {
+func (s *Server) psync(cmd []RESP, conn net.Conn) []byte {
+	defer s.rdbTransfer(conn)
 	return craftSimp("FULLRESYNC " + s.master_replid + " " + s.master_repl_offset)
 }
 
