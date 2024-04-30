@@ -96,9 +96,7 @@ func (s *Server) ConnectMaster() error {
 					return err
 				}
 				_, response = ReadNextRESP(buff)
-				if !reflect.DeepEqual(response.Raw, craftSimp("FULLRESYNC "+s.master_replid+" "+s.master_repl_offset)) {
-					return err
-				}
+
 				_, err = conn.Read(buff)
 				go s.commandsFromMaster(conn)
 				return nil
