@@ -134,22 +134,23 @@ func main() {
 	log.Fatal(server.Start())
 }
 
-func (s *Server) parseMsg(msg []byte) ([]byte, error) {
+func (s *Server) parseMsg(msg []byte) ([]byte, string) {
 	si, resp := ReadNextRESP(msg)
 	if si == 0 {
-		return nil, errors.New("no resp object")
+		return nil, "no resp object"
 	}
 	t := resp.Type
 	var response []byte = nil
+	var topass string = ""
 	switch t {
 	case Array:
-		response = s.handleCommand(resp)
+		response, topass = s.handleCommand(resp)
 
 	}
-	return response, nil
+	return response, topass
 }
 
-func (s *Server) handleCommand(resp RESP) []byte {
+func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 
 	var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
@@ -158,6 +159,7 @@ func (s *Server) handleCommand(resp RESP) []byte {
 	})
 
 	var response []byte = nil
+	var topass string = ""
 	switch strings.ToLower(string(cmd[0].Data)) {
 	case "ping":
 		response = []byte("+PONG\r\n")
@@ -173,11 +175,12 @@ func (s *Server) handleCommand(resp RESP) []byte {
 		response = s.replconf(cmd)
 	case "psync":
 		response = s.psync(cmd)
+		topass = "rdbsync"
 
 	default:
 		fmt.Println("error")
 	}
-	return response
+	return response, topass
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -190,10 +193,14 @@ func (s *Server) handleConnection(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 
-		response, _ := s.parseMsg(buff)
+		response, msg := s.parseMsg(buff)
 
 		if response != nil {
 			conn.Write(response)
+		}
+
+		if msg == "rdbsync" {
+			s.rdbTransfer(conn)
 		}
 
 	}
