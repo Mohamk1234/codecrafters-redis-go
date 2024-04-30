@@ -131,10 +131,9 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			*results = append(*results, resp) // Append RESP object to the slice
 			return true                       // Continue iterating
 		})
-
+		fmt.Printf(string(cmd[0].Data))
 		switch strings.ToLower(string(cmd[0].Data)) {
 		case "set":
-			fmt.Println("setting key")
 			_ = addToStore(cmd)
 		case "replconf":
 			conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", "0"}))))
