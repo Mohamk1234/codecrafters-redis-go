@@ -116,6 +116,7 @@ func (s *Server) ConnectMaster() error {
 func (s *Server) commandsFromMaster(conn net.Conn) {
 	defer conn.Close()
 	buff := make([]byte, 1024)
+	fmt.Println("getting comms from master")
 	for {
 
 		_, err := conn.Read(buff)
@@ -135,7 +136,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 
 		switch strings.ToLower(string(cmd[0].Data)) {
 		case "set":
-			fmt.Println("added" + string(cmd[1].Data))
 			_ = addToStore(cmd)
 		case "del":
 		}
