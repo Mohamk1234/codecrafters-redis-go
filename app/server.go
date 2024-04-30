@@ -172,7 +172,7 @@ func (s *Server) handleCommand(resp RESP, conn net.Conn) []byte {
 	case "replconf":
 		response = s.replconf(cmd)
 	case "psync":
-		response = s.psync(cmd)
+		response = s.psync(cmd, conn)
 
 	default:
 		fmt.Println("error")
