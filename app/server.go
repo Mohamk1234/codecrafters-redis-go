@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"reflect"
 	"strings"
 )
 
@@ -20,7 +21,7 @@ type Server struct {
 	masterurl          string
 	master_replid      string
 	master_repl_offset string
-	slave_urls         []string
+	slave_connections  map[net.Conn]struct{}
 }
 
 func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
@@ -167,6 +168,9 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 		response = echo(cmd)
 	case "set":
 		response = addToStore(cmd)
+		if !reflect.DeepEqual(response, []byte("$-1\r\n")) {
+			s.addtoreplicas(resp.Raw)
+		}
 	case "get":
 		response = getFromStore(cmd)
 	case "info":
@@ -181,6 +185,12 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 		fmt.Println("error")
 	}
 	return response, topass
+}
+
+func (s *Server) addtoreplicas(command []byte) {
+	for conn, _ := range s.slave_connections {
+		conn.Write(command)
+	}
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -201,6 +211,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		if msg == "rdbsync" {
 			s.rdbTransfer(conn)
+			s.slave_connections[conn] = struct{}{}
 		}
 
 	}

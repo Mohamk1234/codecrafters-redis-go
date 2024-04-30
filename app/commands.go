@@ -76,7 +76,6 @@ func (s *Server) replconf(cmd []RESP) []byte {
 	command := cmd[1].String()
 
 	if command == "listening-port" {
-		s.slave_urls = append(s.slave_urls, cmd[2].String())
 		return craftSimp("OK")
 	} else if command == "capa" {
 		return craftSimp("OK")
