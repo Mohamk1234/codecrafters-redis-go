@@ -134,7 +134,7 @@ func main() {
 	log.Fatal(server.Start())
 }
 
-func (s *Server) parseMsg(msg []byte) ([]byte, error) {
+func (s *Server) parseMsg(msg []byte, conn net.Conn) ([]byte, error) {
 	si, resp := ReadNextRESP(msg)
 	if si == 0 {
 		return nil, errors.New("no resp object")
@@ -143,13 +143,13 @@ func (s *Server) parseMsg(msg []byte) ([]byte, error) {
 	var response []byte = nil
 	switch t {
 	case Array:
-		response = s.handleCommand(resp)
+		response = s.handleCommand(resp, conn)
 
 	}
 	return response, nil
 }
 
-func (s *Server) handleCommand(resp RESP) []byte {
+func (s *Server) handleCommand(resp RESP, conn net.Conn) []byte {
 
 	var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
@@ -172,8 +172,9 @@ func (s *Server) handleCommand(resp RESP) []byte {
 	case "replconf":
 		response = s.replconf(cmd)
 	case "psync":
-		response = s.psync((cmd))
-		defer s.rdbTransfer()
+		response = s.psync(cmd)
+		defer s.rdbTransfer(conn)
+
 	default:
 		fmt.Println("error")
 	}
@@ -190,7 +191,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 
-		response, _ := s.parseMsg(buff)
+		response, _ := s.parseMsg(buff, conn)
 
 		if response != nil {
 			conn.Write(response)
