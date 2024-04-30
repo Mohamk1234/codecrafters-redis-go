@@ -31,6 +31,7 @@ func NewServer(ListenAddr string, role string, masterurl string, master_replid s
 		masterurl:          masterurl,
 		master_replid:      master_replid,
 		master_repl_offset: master_repl_offset,
+		slave_connections:  make(map[net.Conn]struct{}),
 	}
 }
 
