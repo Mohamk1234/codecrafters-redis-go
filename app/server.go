@@ -135,6 +135,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 
 		switch strings.ToLower(string(cmd[0].Data)) {
 		case "set":
+			fmt.Println("added" + string(cmd[1].Data))
 			_ = addToStore(cmd)
 		case "del":
 		}
