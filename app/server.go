@@ -62,7 +62,6 @@ func (s *Server) ConnectMaster() error {
 		fmt.Println("Error:", err)
 		return err
 	}
-	defer conn.Close()
 	conn.Write(craftArray([]string{"ping"}))
 	buff := make([]byte, 1024)
 	_, err = conn.Read(buff)
@@ -89,13 +88,19 @@ func (s *Server) ConnectMaster() error {
 			}
 			_, response = ReadNextRESP(buff)
 			if response.String() == "OK" {
+
 				conn.Write(craftArray([]string{"psync", "?", "-1"}))
-				_, err = conn.Read(buff)
+				_, err := conn.Read(buff)
 
 				if err != nil {
 					return err
 				}
 				_, response = ReadNextRESP(buff)
+				if !reflect.DeepEqual(response.Raw, craftSimp("FULLRESYNC "+s.master_replid+" "+s.master_repl_offset)) {
+					return err
+				}
+				_, err = conn.Read(buff)
+				go s.commandsFromMaster(conn)
 				return nil
 			} else {
 				return errors.New("Error connecting to Master")
@@ -105,6 +110,34 @@ func (s *Server) ConnectMaster() error {
 		}
 	} else {
 		return errors.New("Error connecting to Master")
+	}
+}
+
+func (s *Server) commandsFromMaster(conn net.Conn) {
+	defer conn.Close()
+	buff := make([]byte, 1024)
+	for {
+
+		_, err := conn.Read(buff)
+
+		if err != nil {
+			//fmt.Println("Failed to read buffer", err)
+		}
+		si, resp := ReadNextRESP(buff)
+		if si == 0 {
+			return
+		}
+		var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+			// Process RESP object if needed
+			*results = append(*results, resp) // Append RESP object to the slice
+			return true                       // Continue iterating
+		})
+
+		switch strings.ToLower(string(cmd[0].Data)) {
+		case "set":
+			_ = addToStore(cmd)
+		case "del":
+		}
 	}
 }
 
@@ -196,8 +229,9 @@ func (s *Server) addtoreplicas(command []byte) {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
+	buff := make([]byte, 1024)
 	for {
-		buff := make([]byte, 1024)
+
 		_, err := conn.Read(buff)
 
 		if err != nil {
