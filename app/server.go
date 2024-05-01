@@ -132,7 +132,10 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			*results = append(*results, resp) // Append RESP object to the slice
 			return true                       // Continue iterating
 		})
+		fmt.Println(string(cmd[0].Data))
 		switch strings.ToLower(string(cmd[0].Data)) {
+		case "ping":
+
 		case "set":
 			_ = addToStore(cmd)
 		case "replconf":
