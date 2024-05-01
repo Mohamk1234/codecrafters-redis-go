@@ -133,8 +133,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			return true                       // Continue iterating
 		})
 		switch strings.ToLower(string(cmd[0].Data)) {
-		case "ping":
-
 		case "set":
 			_ = addToStore(cmd)
 		case "replconf":
@@ -146,7 +144,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 
 		}
 
-		//bytesread += len(resp.Raw)
+		bytesread += len(resp.Raw)
 	}
 }
 
