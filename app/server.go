@@ -125,7 +125,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		}
 		si, resp := ReadNextRESP(buff)
 		if si == 0 {
-			return
+			continue
 		}
 		var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 			// Process RESP object if needed
@@ -145,6 +145,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			}
 
 		}
+
 		bytesread += len(resp.Raw)
 	}
 }
