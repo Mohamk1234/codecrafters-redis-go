@@ -9,7 +9,6 @@ import (
 	"net"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -114,7 +113,7 @@ func (s *Server) ConnectMaster() error {
 
 func (s *Server) commandsFromMaster(conn net.Conn) {
 	defer conn.Close()
-	bytesread := 0
+	//bytesread := 0
 	for {
 
 		buff := make([]byte, 1024)
@@ -140,13 +139,13 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		case "replconf":
 			switch strings.ToLower(string(cmd[1].Data)) {
 			case "getack":
-				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
+				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", "0"}))))
 
 			}
 
 		}
 
-		bytesread += len(resp.Raw)
+		//bytesread += len(resp.Raw)
 	}
 }
 
