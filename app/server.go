@@ -124,6 +124,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 		si, resp := ReadNextRESP(buff)
+		fmt.Println(resp.Data)
 		if si == 0 {
 			continue
 		}
@@ -134,8 +135,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		})
 		fmt.Println(string(cmd[0].Data))
 		switch strings.ToLower(string(cmd[0].Data)) {
-		case "ping":
-
 		case "set":
 			_ = addToStore(cmd)
 		case "replconf":
