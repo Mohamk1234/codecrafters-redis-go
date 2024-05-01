@@ -113,10 +113,10 @@ func (s *Server) ConnectMaster() error {
 
 func (s *Server) commandsFromMaster(conn net.Conn) {
 	defer conn.Close()
-	buff := make([]byte, 1024)
 
 	for {
 
+		buff := make([]byte, 1024)
 		_, err := conn.Read(buff)
 
 		if err != nil {
@@ -131,7 +131,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			*results = append(*results, resp) // Append RESP object to the slice
 			return true                       // Continue iterating
 		})
-		fmt.Printf(string(cmd[0].Data))
 		switch strings.ToLower(string(cmd[0].Data)) {
 		case "set":
 			_ = addToStore(cmd)
@@ -229,9 +228,9 @@ func (s *Server) addtoreplicas(command []byte) {
 
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
-	buff := make([]byte, 1024)
-	for {
 
+	for {
+		buff := make([]byte, 1024)
 		_, err := conn.Read(buff)
 
 		if err != nil {
