@@ -136,11 +136,8 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		case "set":
 			_ = addToStore(cmd)
 		case "replconf":
-			switch strings.ToLower(string(cmd[1].Data)) {
-			case "getack":
-				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
-
-			}
+			fmt.Println(bytesread)
+			conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
 
 		}
 
