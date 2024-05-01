@@ -141,7 +141,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 
 		}
 
-		bytesread += len(resp.Raw)
+		bytesread = len(resp.Raw) + bytesread
 	}
 }
 
