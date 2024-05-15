@@ -123,37 +123,41 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
-		si, resp := ReadNextRESP(buff)
 
-		if si == 0 {
-			continue
+		for len(buff) != 0 {
+			si, resp := ReadNextRESP(buff)
+
+			if si == 0 {
+				continue
+			}
+			var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+				// Process RESP object if needed
+				*results = append(*results, resp) // Append RESP object to the slice
+				return true                       // Continue iterating
+			})
+			fmt.Println(string(cmd[0].Data))
+			switch strings.ToLower(string(cmd[0].Data)) {
+			case "set":
+				_ = addToStore(cmd)
+			case "replconf":
+				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
+
+			}
+
+			bytesread = len(resp.Raw) + bytesread
 		}
-		var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
-			// Process RESP object if needed
-			*results = append(*results, resp) // Append RESP object to the slice
-			return true                       // Continue iterating
-		})
-		fmt.Println(string(cmd[0].Data))
-		switch strings.ToLower(string(cmd[0].Data)) {
-		case "set":
-			_ = addToStore(cmd)
-		case "replconf":
-			conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
 
-		}
-
-		bytesread = len(resp.Raw) + bytesread
 	}
 }
 
-func findAfter(data []string, target string) string {
-	for i := 0; i < len(data)-1; i++ {
-		if data[i] == target {
-			return data[i+1]
-		}
-	}
-	return ""
-}
+// func findAfter(data []string, target string) string {
+// 	for i := 0; i < len(data)-1; i++ {
+// 		if data[i] == target {
+// 			return data[i+1]
+// 		}
+// 	}
+// 	return ""
+// }
 
 func main() {
 
