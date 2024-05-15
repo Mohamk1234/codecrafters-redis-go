@@ -105,9 +105,8 @@ func (s *Server) ConnectMaster() error {
 					slog.Info("last message read", "msg", string(response.Data))
 
 					go s.commandsFromMaster(conn)
-				} else {
-					return nil
 				}
+				return nil
 
 			} else {
 				return errors.New("Error connecting to Master")
