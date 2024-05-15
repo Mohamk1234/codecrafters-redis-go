@@ -169,7 +169,7 @@ func main() {
 		role = "slave"
 		masterurl = masterurl + ":" + findAfter(os.Args[1:], masterurl)
 	}
-
+	fmt.Printf(masterurl)
 	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0")
 	log.Fatal(server.Start())
 }
