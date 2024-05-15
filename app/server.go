@@ -98,7 +98,7 @@ func (s *Server) ConnectMaster() error {
 				}
 				_, response = ReadNextRESP(buff)
 
-				s.commandsFromMaster(conn)
+				go s.commandsFromMaster(conn)
 				return nil
 			} else {
 				return errors.New("Error connecting to Master")
@@ -112,6 +112,7 @@ func (s *Server) ConnectMaster() error {
 }
 
 func (s *Server) commandsFromMaster(conn net.Conn) {
+	slog.Info("commands from master sent", "listenAddr", s.ListenAddr)
 	defer conn.Close()
 	bytesread := 0
 	for {
