@@ -123,8 +123,9 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
-
-		for len(buff) != 0 {
+		total_size := len(buff)
+		total_read := 0
+		for total_size > total_read {
 			si, resp := ReadNextRESP(buff)
 
 			if si == 0 {
@@ -145,6 +146,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			}
 
 			bytesread = len(resp.Raw) + bytesread
+			total_read += si
 		}
 
 	}
