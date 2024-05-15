@@ -98,6 +98,8 @@ func (s *Server) ConnectMaster() error {
 				}
 				_, response = ReadNextRESP(buff)
 
+				slog.Info("last message read", "msg", string(response.Data))
+
 				go s.commandsFromMaster(conn)
 				return nil
 			} else {
@@ -112,7 +114,7 @@ func (s *Server) ConnectMaster() error {
 }
 
 func (s *Server) commandsFromMaster(conn net.Conn) {
-	slog.Info("commands from master sent", "listenAddr", s.ListenAddr)
+	slog.Info("Receiving commands from Master at ", "listenAddr", s.ListenAddr)
 	defer conn.Close()
 	bytesread := 0
 	for {
@@ -123,7 +125,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
-		slog.Info("buffer read", "size", len(buff))
 		total_size := len(buff)
 		total_read := 0
 		for total_size > total_read {
