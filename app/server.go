@@ -101,7 +101,7 @@ func (s *Server) ConnectMaster() error {
 				_, err = conn.Read(buff)
 				_, response = ReadNextRESP(buff)
 				print(string(response.Data))
-				go s.commandsFromMaster(conn)
+				s.commandsFromMaster(conn)
 				return nil
 			} else {
 				return errors.New("Error connecting to Master")
