@@ -167,9 +167,9 @@ func main() {
 	role := "master"
 	if masterurl != "" {
 		role = "slave"
-		masterurl = masterurl + ":" + findAfter(os.Args[1:], masterurl)
+		masterurl = "localhost:" + findAfter(os.Args[1:], masterurl)
 	}
-	slog.Info("goredis server running", "listenAddr", masterurl)
+
 	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0")
 	log.Fatal(server.Start())
 }
