@@ -99,6 +99,9 @@ func (s *Server) ConnectMaster() error {
 				_, response = ReadNextRESP(buff)
 
 				slog.Info("last message read", "msg", string(response.Data))
+				_, err = conn.Read(buff)
+				_, response = ReadNextRESP(buff)
+				slog.Info("last message read", "msg", string(response.Data))
 
 				go s.commandsFromMaster(conn)
 				return nil
