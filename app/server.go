@@ -123,6 +123,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
+		slog.Info("buffer read", "size", len(buff))
 		total_size := len(buff)
 		total_read := 0
 		for total_size > total_read {
