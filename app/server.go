@@ -124,7 +124,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 		si, resp := ReadNextRESP(buff)
-		fmt.Println(resp.Data)
+
 		if si == 0 {
 			continue
 		}
