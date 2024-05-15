@@ -97,10 +97,7 @@ func (s *Server) ConnectMaster() error {
 					return err
 				}
 				_, response = ReadNextRESP(buff)
-				print("fullresync" + string(response.Data))
-				_, err = conn.Read(buff)
-				_, response = ReadNextRESP(buff)
-				print("rdbconfig" + string(response.Data))
+
 				s.commandsFromMaster(conn)
 				return nil
 			} else {
