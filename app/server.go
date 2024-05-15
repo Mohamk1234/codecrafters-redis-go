@@ -125,6 +125,8 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
+		_, resp := ReadNextRESP(buff)
+		slog.Info("first msg in commandsfrommaster", "MSG:", string(resp.Data))
 		total_size := len(buff)
 		total_read := 0
 		for total_size > total_read {
