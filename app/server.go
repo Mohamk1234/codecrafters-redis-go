@@ -167,7 +167,8 @@ func main() {
 	role := "master"
 	if masterurl != "" {
 		role = "slave"
-		masterurl = "localhost:" + findAfter(os.Args[1:], masterurl)
+		ss := strings.Split(masterurl, " ")
+		masterurl = ss[0] + ":" + ss[1]
 	}
 
 	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0")
