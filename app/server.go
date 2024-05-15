@@ -98,7 +98,7 @@ func (s *Server) ConnectMaster() error {
 				}
 				_, response = ReadNextRESP(buff)
 
-				_, err = conn.Read(buff)
+				//_, err = conn.Read(buff)
 				go s.commandsFromMaster(conn)
 				return nil
 			} else {
