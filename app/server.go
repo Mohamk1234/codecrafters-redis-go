@@ -105,11 +105,13 @@ func (s *Server) ConnectMaster() error {
 				if err != nil {
 					return err
 				}
-				//_, response = ReadNextRESP(buff)
+				_, response = ReadNextRESP(buff)
+				slog.Info("message in buffer", "message", response.Data)
 
 				_, err = conn.Read(buff)
 
-				//_, response = ReadNextRESP(buff)
+				_, response = ReadNextRESP(buff)
+				slog.Info("message in buffer", "message", response.Data)
 				go s.commandsFromMaster(conn)
 
 				return nil
