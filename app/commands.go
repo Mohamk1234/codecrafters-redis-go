@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -81,7 +81,7 @@ func (s *Server) replconf(cmd []RESP) []byte {
 	} else if command == "capa" {
 		return craftSimp("OK")
 	} else if command == "ack" {
-		fmt.Println("in ack in handlereplconf")
+		slog.Info("in ack in handlereplconf", "test")
 		s.previous_command_ack += 1
 		return []byte("$-1\r\n")
 	} else {
