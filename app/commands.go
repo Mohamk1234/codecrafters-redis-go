@@ -116,4 +116,6 @@ func (s *Server) handleWait(cmd []RESP) []byte {
 		}
 
 	}
+
+	return craftInt(strconv.Itoa(total_acked))
 }
