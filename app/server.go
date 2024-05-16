@@ -248,6 +248,7 @@ func (s *Server) addtoreplicas(command []byte) {
 		conn.Write(command)
 		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
 		buff := make([]byte, 1024)
+		slog.Info("reply from replica", "reply:", string(buff))
 		si, resp := ReadNextRESP(buff)
 
 		if si == 0 {
@@ -260,7 +261,6 @@ func (s *Server) addtoreplicas(command []byte) {
 		})
 		if strings.ToLower(cmd[1].String()) == "ack" {
 			s.previous_command_ack += 1
-			slog.Info("acked", "ack", s.previous_command_ack)
 		}
 
 	}
