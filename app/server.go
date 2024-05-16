@@ -231,7 +231,8 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 	case "psync":
 		response = s.psync(cmd)
 		topass = "rdbsync"
-
+	case "wait":
+		response = craftInt("0")
 	default:
 		fmt.Println("error")
 	}

@@ -167,3 +167,7 @@ func craftArray(r []string) []byte {
 
 	return []byte(response)
 }
+
+func craftInt(r string) []byte {
+	return []byte(":" + r + "\r\n")
+}
