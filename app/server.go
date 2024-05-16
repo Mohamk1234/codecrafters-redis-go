@@ -91,14 +91,15 @@ func (s *Server) ConnectMaster() error {
 			if response.String() == "OK" {
 
 				conn.Write(craftArray([]string{"psync", "?", "-1"}))
-				//_, err := conn.Read(buff)
+				_, err := conn.Read(buff)
 
 				if err != nil {
 					return err
 				}
 				//_, response = ReadNextRESP(buff)
 
-				//_, err = conn.Read(buff)
+				_, err = conn.Read(buff)
+				slog.Info("should contain empty rdb transfer ", "listenAddr", string(buff))
 				//_, response = ReadNextRESP(buff)
 				go s.commandsFromMaster(conn)
 
