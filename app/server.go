@@ -218,6 +218,7 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 		response = []byte("+PONG\r\n")
 	case "echo":
 		response = echo(cmd)
+
 	case "set":
 		response = addToStore(cmd)
 		if !reflect.DeepEqual(response, []byte("$-1\r\n")) {
@@ -243,6 +244,7 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 func (s *Server) addtoreplicas(command []byte) {
 	for conn, _ := range s.slave_connections {
 		conn.Write(command)
+		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
 	}
 }
 
