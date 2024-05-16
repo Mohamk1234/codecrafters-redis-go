@@ -139,7 +139,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
-
+		slog.Info("IN master", "bufflen", bufflen)
 		total_read := 0
 		for bufflen > total_read {
 			si, resp := ReadNextRESP(buff)
