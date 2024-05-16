@@ -16,25 +16,29 @@ import (
 var keyvaluestore = make(map[string]any)
 
 type Server struct {
-	ListenAddr           string
-	role                 string
-	ln                   net.Listener
-	masterurl            string
-	master_replid        string
-	master_repl_offset   string
-	slave_connections    map[net.Conn]struct{}
-	previous_command_ack int64
+	ListenAddr         string
+	role               string
+	ln                 net.Listener
+	masterurl          string
+	master_replid      string
+	master_repl_offset string
+	slave_connections  map[net.Conn]*Replica
+}
+
+type Replica struct {
+	bytes_read     int64
+	previous_acked bool
+	rdbconfiged    bool
 }
 
 func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
 	return &Server{
-		ListenAddr:           ListenAddr,
-		role:                 role,
-		masterurl:            masterurl,
-		master_replid:        master_replid,
-		master_repl_offset:   master_repl_offset,
-		slave_connections:    make(map[net.Conn]struct{}),
-		previous_command_ack: 0,
+		ListenAddr:         ListenAddr,
+		role:               role,
+		masterurl:          masterurl,
+		master_replid:      master_replid,
+		master_repl_offset: master_repl_offset,
+		slave_connections:  make(map[net.Conn]*Replica),
 	}
 }
 
@@ -189,24 +193,9 @@ func main() {
 	log.Fatal(server.Start())
 }
 
-func (s *Server) parseMsg(msg []byte) ([]byte, string) {
-	si, resp := ReadNextRESP(msg)
-	if si == 0 {
-		return nil, "no resp object"
-	}
-	t := resp.Type
-	var response []byte = nil
-	var topass string = ""
-	switch t {
-	case Array:
-		response, topass = s.handleCommand(resp)
+func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 
-	}
-	return response, topass
-}
-
-func (s *Server) handleCommand(resp RESP) ([]byte, string) {
-
+	_, resp := ReadNextRESP(msg)
 	var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
 		// Process RESP object if needed
 		*results = append(*results, resp) // Append RESP object to the slice
@@ -231,7 +220,7 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 	case "info":
 		response = s.sendInfo(cmd)
 	case "replconf":
-		response = s.replconf(cmd)
+		response, topass = s.replconf(cmd)
 	case "psync":
 		response = s.psync(cmd)
 		topass = "rdbsync"
@@ -244,13 +233,13 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 }
 
 func (s *Server) addtoreplicas(command []byte) {
-	s.previous_command_ack = 0
+
 	for conn, _ := range s.slave_connections {
+		s.slave_connections[conn].previous_acked = false
 		conn.Write(command)
 		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
 
 	}
-	slog.Info("Number of replicas that have got the msg", "NUM", s.previous_command_ack)
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
@@ -264,7 +253,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			//fmt.Println("Failed to read buffer", err)
 		}
 
-		response, msg := s.parseMsg(buff)
+		response, msg := s.handleCommand(buff)
 
 		if response != nil {
 			conn.Write(response)
@@ -272,7 +261,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 		if msg == "rdbsync" {
 			s.rdbTransfer(conn)
-			s.slave_connections[conn] = struct{}{}
+			s.slave_connections[conn] = &Replica{bytes_read: 0, previous_acked: false, rdbconfiged: false}
+		} else if msg == "Set_ack" {
+			s.slave_connections[conn].previous_acked = true
 		}
 
 	}

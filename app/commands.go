@@ -72,18 +72,19 @@ func addToStore(cmd []RESP) []byte {
 	return craftSimp("OK")
 }
 
-func (s *Server) replconf(cmd []RESP) []byte {
+func (s *Server) replconf(cmd []RESP) ([]byte, string) {
+
+	var topass string = ""
 	command := cmd[1].String()
 
 	if command == "listening-port" {
-		return craftSimp("OK")
+		return craftSimp("OK"), topass
 	} else if command == "capa" {
-		return craftSimp("OK")
+		return craftSimp("OK"), topass
 	} else if command == "ACK" {
-		s.previous_command_ack += 1
-		return []byte("$-1\r\n")
+		return []byte("$-1\r\n"), "Set_ack"
 	} else {
-		return []byte("$-1\r\n")
+		return []byte("$-1\r\n"), topass
 	}
 
 }
@@ -102,10 +103,17 @@ func (s *Server) rdbTransfer(conn net.Conn) {
 	response := "$" + strconv.Itoa(len(data)) + "\r\n"
 	conn.Write([]byte(response))
 	conn.Write(data)
+	s.slave_connections[conn].rdbconfiged = true
 }
 
 func (s *Server) handleWait(cmd []RESP) []byte {
 	duration := time.Millisecond * time.Duration(cmd[2].Int())
 	time.Sleep(duration)
-	return []byte(craftInt(strconv.Itoa(int(s.previous_command_ack))))
+	total_acked := 0
+	for _, rep := range s.slave_connections {
+		if rep.previous_acked {
+			total_acked += 1
+		}
+
+	}
 }
