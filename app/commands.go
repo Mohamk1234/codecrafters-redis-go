@@ -108,8 +108,8 @@ func (s *Server) rdbTransfer(conn net.Conn) {
 }
 
 func (s *Server) handleWait(cmd []RESP) []byte {
-	duration := time.Millisecond * time.Duration(cmd[2].Int())
-	time.Sleep(duration)
+	// duration := time.Millisecond * time.Duration(cmd[2].Int())
+	// time.Sleep(duration)
 	total_acked := 0
 	for _, rep := range s.slave_connections {
 		if rep.previous_acked {
