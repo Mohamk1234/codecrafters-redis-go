@@ -110,8 +110,8 @@ func (s *Server) ConnectMaster() error {
 
 				_, err = conn.Read(buff)
 
-				_, response = ReadNextRESP(buff)
-				slog.Info("message in buffer", "message", response.Data)
+				// _, response = ReadNextRESP(buff)
+				// slog.Info("message in buffer", "message", response.Data)
 				go s.commandsFromMaster(conn)
 
 				return nil
@@ -139,7 +139,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		if err != nil {
 			//fmt.Println("Failed to read buffer", err)
 		}
-		slog.Info("IN master", "bufflen", bufflen)
 		total_read := 0
 		for bufflen > total_read {
 			si, resp := ReadNextRESP(buff)
