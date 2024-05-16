@@ -98,11 +98,10 @@ func (s *Server) ConnectMaster() error {
 				}
 				_, response = ReadNextRESP(buff)
 
-				if strings.HasPrefix(response.String(), "FU") {
-					_, err = conn.Read(buff)
-					_, response = ReadNextRESP(buff)
-					go s.commandsFromMaster(conn)
-				}
+				_, err = conn.Read(buff)
+				_, response = ReadNextRESP(buff)
+				go s.commandsFromMaster(conn)
+
 				return nil
 
 			} else {
