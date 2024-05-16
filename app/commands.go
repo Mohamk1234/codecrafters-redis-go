@@ -80,7 +80,7 @@ func (s *Server) replconf(cmd []RESP) []byte {
 		return craftSimp("OK")
 	} else if command == "capa" {
 		return craftSimp("OK")
-	} else if command == "ack" {
+	} else if command == "ACK" {
 		slog.Info("in ack in handlereplconf", "test")
 		s.previous_command_ack += 1
 		return []byte("$-1\r\n")
