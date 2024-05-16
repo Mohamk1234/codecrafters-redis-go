@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -116,6 +117,6 @@ func (s *Server) handleWait(cmd []RESP) []byte {
 		}
 
 	}
-
+	slog.Info("Number of clients", "clients", total_acked)
 	return craftInt(strconv.Itoa(total_acked))
 }
