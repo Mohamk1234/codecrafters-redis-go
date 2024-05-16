@@ -164,15 +164,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 	}
 }
 
-// func findAfter(data []string, target string) string {
-// 	for i := 0; i < len(data)-1; i++ {
-// 		if data[i] == target {
-// 			return data[i+1]
-// 		}
-// 	}
-// 	return ""
-// }
-
 func main() {
 
 	var ListenAddr string
