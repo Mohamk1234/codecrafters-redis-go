@@ -91,7 +91,7 @@ func (s *Server) ConnectMaster() error {
 			if response.String() == "OK" {
 
 				conn.Write(craftArray([]string{"psync", "?", "-1"}))
-				_, err := conn.Read(buff)
+				//_, err := conn.Read(buff)
 
 				if err != nil {
 					return err
