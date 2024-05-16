@@ -96,10 +96,10 @@ func (s *Server) ConnectMaster() error {
 				if err != nil {
 					return err
 				}
-				_, response = ReadNextRESP(buff)
+				//_, response = ReadNextRESP(buff)
 
 				_, err = conn.Read(buff)
-				_, response = ReadNextRESP(buff)
+				//_, response = ReadNextRESP(buff)
 				go s.commandsFromMaster(conn)
 
 				return nil
