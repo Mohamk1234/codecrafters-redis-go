@@ -227,9 +227,9 @@ func (s *Server) addtoreplicas(command []byte) {
 
 	for conn, _ := range s.slave_connections {
 		s.slave_connections[conn].previous_acked = false
+		slog.Info("command to be written", "command", string(command))
 		conn.Write(command)
 		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
-
 	}
 }
 
