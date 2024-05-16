@@ -251,7 +251,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 
 		if msg == "rdbsync" {
-			s.slave_connections[conn] = &Replica{bytes_read: 0, previous_acked: false, rdbconfiged: false}
+			s.slave_connections[conn] = &Replica{bytes_read: 0, previous_acked: true, rdbconfiged: false}
 			s.rdbTransfer(conn)
 
 		} else if msg == "Set_ack" {
