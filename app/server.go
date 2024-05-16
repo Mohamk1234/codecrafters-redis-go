@@ -263,7 +263,7 @@ func (s *Server) addtoreplicas(command []byte) {
 		}
 
 	}
-	fmt.Println(s.previous_command_ack)
+	slog.Info("Number of replicas that have got the msg", "NUM", s.previous_command_ack)
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
