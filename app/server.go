@@ -260,6 +260,7 @@ func (s *Server) addtoreplicas(command []byte) {
 		})
 		if strings.ToLower(cmd[1].String()) == "ack" {
 			s.previous_command_ack += 1
+			slog.Info("acked", "ack", s.previous_command_ack)
 		}
 
 	}
