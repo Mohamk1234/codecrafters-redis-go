@@ -82,7 +82,7 @@ func (s *Server) replconf(cmd []RESP) ([]byte, string) {
 	} else if command == "capa" {
 		return craftSimp("OK"), topass
 	} else if command == "ACK" {
-		return []byte("$-1\r\n"), "Set_ack"
+		return nil, "Set_ack"
 	} else {
 		return []byte("$-1\r\n"), topass
 	}
