@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/hex"
-	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -81,7 +80,6 @@ func (s *Server) replconf(cmd []RESP) []byte {
 	} else if command == "capa" {
 		return craftSimp("OK")
 	} else if command == "ACK" {
-		slog.Info("in ack in handlereplconf", "test")
 		s.previous_command_ack += 1
 		return []byte("$-1\r\n")
 	} else {
@@ -107,6 +105,7 @@ func (s *Server) rdbTransfer(conn net.Conn) {
 }
 
 func (s *Server) handleWait(cmd []RESP) []byte {
-
+	duration := time.Millisecond * time.Duration(cmd[2].Int())
+	time.Sleep(duration)
 	return []byte(craftInt(strconv.Itoa(int(s.previous_command_ack))))
 }

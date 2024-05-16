@@ -28,12 +28,13 @@ type Server struct {
 
 func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
 	return &Server{
-		ListenAddr:         ListenAddr,
-		role:               role,
-		masterurl:          masterurl,
-		master_replid:      master_replid,
-		master_repl_offset: master_repl_offset,
-		slave_connections:  make(map[net.Conn]struct{}),
+		ListenAddr:           ListenAddr,
+		role:                 role,
+		masterurl:            masterurl,
+		master_replid:        master_replid,
+		master_repl_offset:   master_repl_offset,
+		slave_connections:    make(map[net.Conn]struct{}),
+		previous_command_ack: 0,
 	}
 }
 
