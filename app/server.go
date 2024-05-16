@@ -204,7 +204,7 @@ func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 	case "set":
 		response = addToStore(cmd)
 		if !reflect.DeepEqual(response, []byte("$-1\r\n")) {
-			s.addtoreplicas(resp.Raw)
+			go s.addtoreplicas(resp.Raw)
 		}
 	case "get":
 		response = getFromStore(cmd)
