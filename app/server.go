@@ -232,7 +232,7 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 		response = s.psync(cmd)
 		topass = "rdbsync"
 	case "wait":
-		response = craftInt(string(len(s.slave_connections)))
+		response = craftInt(strconv.Itoa(len(s.slave_connections)))
 	default:
 		fmt.Println("error")
 	}
