@@ -102,9 +102,6 @@ func (s *Server) rdbTransfer(conn net.Conn) {
 }
 
 func (s *Server) handleWait(cmd []RESP) []byte {
-	acks_required := cmd[1].Int()
-	for s.previous_command_ack < acks_required {
 
-	}
 	return []byte(craftInt(strconv.Itoa(int(s.previous_command_ack))))
 }

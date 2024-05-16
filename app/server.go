@@ -263,6 +263,7 @@ func (s *Server) addtoreplicas(command []byte) {
 		}
 
 	}
+	fmt.Println(s.previous_command_ack)
 }
 
 func (s *Server) handleConnection(conn net.Conn) {
