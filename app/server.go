@@ -247,21 +247,6 @@ func (s *Server) addtoreplicas(command []byte) {
 	for conn, _ := range s.slave_connections {
 		conn.Write(command)
 		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
-		buff := make([]byte, 1024)
-
-		si, resp := ReadNextRESP(buff)
-
-		if si == 0 {
-			continue
-		}
-		var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
-			// Process RESP object if needed
-			*results = append(*results, resp) // Append RESP object to the slice
-			return true                       // Continue iterating
-		})
-		if strings.ToLower(cmd[1].String()) == "ack" {
-			s.previous_command_ack += 1
-		}
 
 	}
 	slog.Info("Number of replicas that have got the msg", "NUM", s.previous_command_ack)
