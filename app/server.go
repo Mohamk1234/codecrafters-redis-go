@@ -98,12 +98,9 @@ func (s *Server) ConnectMaster() error {
 				}
 				_, response = ReadNextRESP(buff)
 
-				slog.Info("last message read", "msg", string(response.Data))
 				if strings.HasPrefix(response.String(), "FU") {
 					_, err = conn.Read(buff)
 					_, response = ReadNextRESP(buff)
-					slog.Info("last message read", "msg", string(response.Data))
-
 					go s.commandsFromMaster(conn)
 				}
 				return nil
