@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/hex"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 func getFromStore(cmd []RESP) []byte {
 	obj, ok := keyvaluestore[cmd[1].String()]
 	if !ok {
+		slog.Info("Not present in store", "not in store", cmd[1].String())
 		return []byte("$-1\r\n")
 	}
 	o, _ := obj.(TimedObject)
@@ -18,6 +20,7 @@ func getFromStore(cmd []RESP) []byte {
 
 	if !ok || (o.duration != 0 && time.Now().After(o.expiry)) {
 		delete(keyvaluestore, cmd[1].String())
+		slog.Info("deleted from store", "not in store", cmd[1].String())
 		return []byte("$-1\r\n")
 	}
 	return craftBulk(v)
