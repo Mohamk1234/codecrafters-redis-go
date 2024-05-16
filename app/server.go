@@ -16,13 +16,14 @@ import (
 var keyvaluestore = make(map[string]any)
 
 type Server struct {
-	ListenAddr         string
-	role               string
-	ln                 net.Listener
-	masterurl          string
-	master_replid      string
-	master_repl_offset string
-	slave_connections  map[net.Conn]struct{}
+	ListenAddr           string
+	role                 string
+	ln                   net.Listener
+	masterurl            string
+	master_replid        string
+	master_repl_offset   string
+	slave_connections    map[net.Conn]struct{}
+	previous_command_ack int
 }
 
 func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
@@ -242,9 +243,25 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 }
 
 func (s *Server) addtoreplicas(command []byte) {
+	s.previous_command_ack = 0
 	for conn, _ := range s.slave_connections {
 		conn.Write(command)
 		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
+		buff := make([]byte, 1024)
+		si, resp := ReadNextRESP(buff)
+
+		if si == 0 {
+			continue
+		}
+		var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+			// Process RESP object if needed
+			*results = append(*results, resp) // Append RESP object to the slice
+			return true                       // Continue iterating
+		})
+		if strings.ToLower(cmd[1].String()) == "ack" {
+			s.previous_command_ack += 1
+		}
+
 	}
 }
 
