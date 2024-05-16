@@ -23,7 +23,7 @@ type Server struct {
 	master_replid        string
 	master_repl_offset   string
 	slave_connections    map[net.Conn]struct{}
-	previous_command_ack int `default:0`
+	previous_command_ack int64
 }
 
 func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
@@ -235,7 +235,7 @@ func (s *Server) handleCommand(resp RESP) ([]byte, string) {
 		response = s.psync(cmd)
 		topass = "rdbsync"
 	case "wait":
-		response = craftInt(strconv.Itoa(s.previous_command_ack))
+		response = s.handleWait(cmd)
 	default:
 		fmt.Println("error")
 	}
