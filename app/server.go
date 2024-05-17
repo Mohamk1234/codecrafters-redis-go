@@ -118,44 +118,8 @@ func (s *Server) ConnectMaster() error {
 
 				// _, response = ReadNextRESP(buff)
 				// slog.Info("message in buffer", "message", response.Data)
-				//s.commandsFromMaster(conn)
-				slog.Info("Receiving commands from Master at ", "listenAddr", s.ListenAddr)
-				defer conn.Close()
-				bytesread := 0
-				for {
+				s.commandsFromMaster(conn)
 
-					buff := make([]byte, 1024)
-					bufflen, err := conn.Read(buff)
-
-					if err != nil {
-						//fmt.Println("Failed to read buffer", err)
-					}
-					total_read := 0
-					for bufflen > total_read {
-						si, resp := ReadNextRESP(buff)
-
-						if si == 0 {
-							continue
-						}
-						var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
-							// Process RESP object if needed
-							*results = append(*results, resp) // Append RESP object to the slice
-							return true                       // Continue iterating
-						})
-						switch strings.ToLower(string(cmd[0].Data)) {
-						case "set":
-							_ = addToStore(cmd)
-						case "replconf":
-							conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
-
-						}
-
-						buff = buff[si:]
-						bytesread = si + bytesread
-						total_read += si
-					}
-
-				}
 				return nil
 
 			}
@@ -164,9 +128,45 @@ func (s *Server) ConnectMaster() error {
 	return nil
 }
 
-// func (s *Server) commandsFromMaster(conn net.Conn) {
+func (s *Server) commandsFromMaster(conn net.Conn) {
+	slog.Info("Receiving commands from Master at ", "listenAddr", s.ListenAddr)
+	defer conn.Close()
+	bytesread := 0
+	for {
 
-// }
+		buff := make([]byte, 1024)
+		bufflen, err := conn.Read(buff)
+
+		if err != nil {
+			//fmt.Println("Failed to read buffer", err)
+		}
+		total_read := 0
+		for bufflen > total_read {
+			si, resp := ReadNextRESP(buff)
+
+			if si == 0 {
+				continue
+			}
+			var cmd = resp.ForEach(func(resp RESP, results *[]RESP) bool {
+				// Process RESP object if needed
+				*results = append(*results, resp) // Append RESP object to the slice
+				return true                       // Continue iterating
+			})
+			switch strings.ToLower(string(cmd[0].Data)) {
+			case "set":
+				_ = addToStore(cmd)
+			case "replconf":
+				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
+
+			}
+
+			buff = buff[si:]
+			bytesread = si + bytesread
+			total_read += si
+		}
+
+	}
+}
 
 func main() {
 
