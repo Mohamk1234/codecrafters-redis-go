@@ -108,7 +108,7 @@ func (s *Server) ConnectMaster() error {
 				_, response = ReadNextRESP(buff)
 				// slog.Info("message in buffer", "message", response.Data)
 
-				// _, err = conn.Read(buff)
+				_, err = conn.Read(buff)
 
 				// _, response = ReadNextRESP(buff)
 				// slog.Info("message in buffer", "message", response.Data)
@@ -257,7 +257,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 			s.slave_connections[conn] = &Replica{bytes_read: 0, previous_acked: true, rdbconfiged: false}
 			s.rdbTransfer(conn)
 
-		} else if msg == "Set_ack" {
+		}
+
+		if msg == "Set_ack" {
 			s.slave_connections[conn].previous_acked = true
 		}
 
