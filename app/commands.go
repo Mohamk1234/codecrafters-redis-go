@@ -110,6 +110,11 @@ func (s *Server) rdbTransfer(conn net.Conn) {
 func (s *Server) handleWait(cmd []RESP) []byte {
 	duration := time.Millisecond * time.Duration(cmd[2].Int())
 	total_acked := 0
+	for conn, _ := range s.slave_connections {
+		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
+
+	}
+
 	if int64(total_acked) != cmd[1].Int() {
 		time.Sleep(duration)
 	}
