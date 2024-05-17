@@ -118,7 +118,7 @@ func (s *Server) ConnectMaster() error {
 
 				// _, response = ReadNextRESP(buff)
 				// slog.Info("message in buffer", "message", response.Data)
-				s.commandsFromMaster(conn)
+				go s.commandsFromMaster(conn)
 
 				return nil
 
