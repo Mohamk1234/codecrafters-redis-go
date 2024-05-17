@@ -155,6 +155,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 			switch strings.ToLower(string(cmd[0].Data)) {
 			case "set":
 				_ = addToStore(cmd)
+				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
 			case "replconf":
 				conn.Write([]byte(craftArray(([]string{"REPLCONF", "ACK", strconv.Itoa(bytesread)}))))
 
@@ -232,7 +233,7 @@ func (s *Server) addtoreplicas(command []byte) {
 	for conn, _ := range s.slave_connections {
 		s.slave_connections[conn].previous_acked = false
 		conn.Write(command)
-		conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
+		//conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
 	}
 }
 
