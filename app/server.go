@@ -191,6 +191,10 @@ func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 		return true                       // Continue iterating
 	})
 
+	if len(cmd) == 0 {
+		return nil, ""
+	}
+
 	var response []byte = nil
 	var topass string = ""
 	switch strings.ToLower(string(cmd[0].Data)) {
