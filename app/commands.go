@@ -128,3 +128,16 @@ func (s *Server) handleWait(cmd []RESP) []byte {
 	slog.Info("Number of clients", "clients", total_acked)
 	return craftInt(strconv.Itoa(total_acked))
 }
+
+func (s *Server) getConfig(cmd []RESP) []byte {
+	command := cmd[2].String()
+
+	switch strings.ToLower(command) {
+	case "dir":
+		return craftArray([]string{"dir", s.conf.dir})
+	case "dbfilename":
+		return craftArray([]string{"dbfilename", s.conf.dbfilename})
+	}
+
+	return []byte("$-1\r\n")
+}

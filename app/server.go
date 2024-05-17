@@ -14,6 +14,11 @@ import (
 
 var keyvaluestore = make(map[string]any)
 
+type Config struct {
+	dir        string
+	dbfilename string
+}
+
 type Server struct {
 	ListenAddr         string
 	role               string
@@ -22,6 +27,7 @@ type Server struct {
 	master_replid      string
 	master_repl_offset string
 	slave_connections  map[net.Conn]*Replica
+	conf               Config
 }
 
 type Replica struct {
@@ -30,7 +36,7 @@ type Replica struct {
 	rdbconfiged    bool
 }
 
-func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string) *Server {
+func NewServer(ListenAddr string, role string, masterurl string, master_replid string, master_repl_offset string, config *Config) *Server {
 	return &Server{
 		ListenAddr:         ListenAddr,
 		role:               role,
@@ -38,6 +44,7 @@ func NewServer(ListenAddr string, role string, masterurl string, master_replid s
 		master_replid:      master_replid,
 		master_repl_offset: master_repl_offset,
 		slave_connections:  make(map[net.Conn]*Replica),
+		conf:               *config,
 	}
 }
 
@@ -145,7 +152,6 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 				*results = append(*results, resp) // Append RESP object to the slice
 				return true                       // Continue iterating
 			})
-			fmt.Println(string(cmd[0].Data))
 			switch strings.ToLower(string(cmd[0].Data)) {
 			case "set":
 				_ = addToStore(cmd)
@@ -166,9 +172,13 @@ func main() {
 
 	var ListenAddr string
 	var masterurl string
+	var dir string
+	var dbfilename string
 
 	flag.StringVar(&ListenAddr, "port", "6379", "number of lines to read from the file")
 	flag.StringVar(&masterurl, "replicaof", "", "url of master node")
+	flag.StringVar(&dir, "dir", "", "Directory of rdb file")
+	flag.StringVar(&dbfilename, "dbfilename", "", "Filename for rdb")
 	flag.Parse()
 
 	role := "master"
@@ -177,8 +187,10 @@ func main() {
 		ss := strings.Split(masterurl, " ")
 		masterurl = ss[0] + ":" + ss[1]
 	}
-
-	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0")
+	cfg := new(Config)
+	cfg.dir = dir
+	cfg.dbfilename = dbfilename
+	server := NewServer(ListenAddr, role, masterurl, generateRandomString(40), "0", cfg)
 	log.Fatal(server.Start())
 }
 
@@ -219,6 +231,8 @@ func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 		topass = "rdbsync"
 	case "wait":
 		response = s.handleWait(cmd)
+	case "config":
+		response = s.getConfig(cmd)
 	default:
 		fmt.Println("error")
 	}
