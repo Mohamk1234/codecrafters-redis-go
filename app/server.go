@@ -50,7 +50,7 @@ func (s *Server) Start() error {
 	s.ln = ln
 	slog.Info("goredis server running", "listenAddr", s.ListenAddr)
 	if s.role == "slave" {
-		s.ConnectMaster()
+		go s.ConnectMaster()
 	}
 
 	for {
