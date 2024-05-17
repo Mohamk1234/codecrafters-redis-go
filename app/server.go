@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -116,15 +115,10 @@ func (s *Server) ConnectMaster() error {
 
 				return nil
 
-			} else {
-				return errors.New("Error connecting to Master")
 			}
-		} else {
-			return errors.New("Error connecting to Master")
 		}
-	} else {
-		return errors.New("Error connecting to Master")
 	}
+	return nil
 }
 
 func (s *Server) commandsFromMaster(conn net.Conn) {
