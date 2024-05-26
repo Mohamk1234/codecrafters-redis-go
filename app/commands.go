@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -140,4 +142,31 @@ func (s *Server) getConfig(cmd []RESP) []byte {
 	}
 
 	return []byte("$-1\r\n")
+}
+
+func (s *Server) getKeys(cmd []RESP) []byte {
+	path := s.conf.dir + "/" + s.conf.dbfilename
+	content, _ := os.ReadFile(path)
+	fmt.Println("MAGIC", string(content[:5]))
+	fmt.Println("VERSION", string(content[5:9]))
+	fmt.Println("TABLE", parseTable(content))
+	key := parseTable(content)
+	len := key[3]
+	str := key[4 : 4+len]
+	return craftArray([]string{string(str)})
+
+}
+
+func indexOf(item byte, byteArray []byte) int {
+	for i, value := range byteArray {
+		if value == item {
+			return i
+		}
+	}
+	return -1
+}
+func parseTable(bytes []byte) []byte {
+	start := indexOf(251, bytes)
+	end := indexOf(255, bytes)
+	return bytes[start+1 : end]
 }

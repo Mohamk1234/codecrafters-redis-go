@@ -6,7 +6,6 @@ import (
 	"log"
 	"log/slog"
 	"net"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -62,8 +61,7 @@ func (s *Server) Start() error {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
-			os.Exit(1)
+			slog.Info("error reading from connection", "err:", err)
 		}
 
 		go s.handleConnection(conn)
@@ -75,7 +73,6 @@ func (s *Server) Start() error {
 func (s *Server) ConnectMaster() error {
 	conn, err := net.Dial("tcp", s.masterurl)
 	if err != nil {
-		fmt.Println("Error:", err)
 		return err
 	}
 	conn.Write(craftArray([]string{"ping"}))
@@ -112,12 +109,16 @@ func (s *Server) ConnectMaster() error {
 					return err
 				}
 				_, response = ReadNextRESP(buff)
-				// slog.Info("message in buffer", "message", response.Data)
+				slog.Info("message in buffer", "message", response.Data)
 
 				_, err = conn.Read(buff)
 
-				// _, response = ReadNextRESP(buff)
-				// slog.Info("message in buffer", "message", response.Data)
+				if err != nil {
+					slog.Info("error reading from connection", "err:", err)
+				}
+
+				_, response = ReadNextRESP(buff)
+				slog.Info("message in buffer", "message", response.Data)
 				go s.commandsFromMaster(conn)
 
 				return nil
@@ -138,7 +139,7 @@ func (s *Server) commandsFromMaster(conn net.Conn) {
 		bufflen, err := conn.Read(buff)
 
 		if err != nil {
-			//fmt.Println("Failed to read buffer", err)
+			slog.Info("error reading from connection", "err:", err)
 		}
 		total_read := 0
 		for bufflen > total_read {
@@ -214,12 +215,13 @@ func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 		response = []byte("+PONG\r\n")
 	case "echo":
 		response = echo(cmd)
-
 	case "set":
 		response = addToStore(cmd)
 		if !reflect.DeepEqual(response, []byte("$-1\r\n")) {
 			go s.addtoreplicas(resp.Raw)
 		}
+	case "key":
+		response = s.getKeys(cmd)
 	case "get":
 		response = getFromStore(cmd)
 	case "info":
@@ -244,7 +246,6 @@ func (s *Server) addtoreplicas(command []byte) {
 	for conn, _ := range s.slave_connections {
 		s.slave_connections[conn].previous_acked = false
 		conn.Write(command)
-		//conn.Write(craftArray([]string{"REPLCONF", "GETACK", "*"}))
 	}
 }
 
@@ -256,7 +257,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		_, err := conn.Read(buff)
 
 		if err != nil {
-			//fmt.Println("Failed to read buffer", err)
+			slog.Info("error reading from connection", "err:", err)
 		}
 
 		response, msg := s.handleCommand(buff)
