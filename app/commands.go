@@ -156,7 +156,6 @@ func (s *Server) getKeys(cmd []RESP) []byte {
 	return craftArray([]string{string(str)})
 
 }
-
 func indexOf(item byte, byteArray []byte) int {
 	for i, value := range byteArray {
 		if value == item {

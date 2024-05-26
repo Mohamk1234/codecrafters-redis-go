@@ -220,7 +220,7 @@ func (s *Server) handleCommand(msg []byte) ([]byte, string) {
 		if !reflect.DeepEqual(response, []byte("$-1\r\n")) {
 			go s.addtoreplicas(resp.Raw)
 		}
-	case "key":
+	case "keys":
 		response = s.getKeys(cmd)
 	case "get":
 		response = getFromStore(cmd)
